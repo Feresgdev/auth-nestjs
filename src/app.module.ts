@@ -7,9 +7,12 @@ import { databaseConfig } from './config/database.config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserSeeder } from './user/user.seeder';
 import { AdminModule } from './admin/admin.module';
+import { SystemModule } from './system/system.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -21,6 +24,7 @@ import { AdminModule } from './admin/admin.module';
     UserModule,
     AuthModule,
     AdminModule,
+    SystemModule,
   ],
 
   controllers: [],

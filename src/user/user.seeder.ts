@@ -4,8 +4,8 @@ import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
 import { User } from './models/user.entity';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Role } from './models/role.entity';
-import RoleName from './enums/user_name.enum';
+import { Role } from '../common/models/role.entity';
+import { RoleName } from '../common/enums/user_name.enum';
 
 @Injectable()
 export class UserSeeder {
@@ -34,7 +34,7 @@ export class UserSeeder {
       where: { name: RoleName.ADMIN },
     });
     const userRole = await roleRepo.findOne({
-      where: { name: RoleName.SUPER_ADMIN },
+      where: { name: RoleName.USER },
     });
 
     if (!userRole) {
@@ -75,7 +75,7 @@ export class UserSeeder {
           const user = userRepo.create({
             email: u.email,
             password: hashed,
-            roleId: u.roleId,
+            roleId: userRole.id,
           });
           await userRepo.save(user);
           this.logger.log(

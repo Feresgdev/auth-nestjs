@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from './user.entity';
-import RoleName from '../enums/user_name.enum';
+import { User } from '../../user/models/user.entity';
+import { RoleName } from '../enums/user_name.enum';
 
 @Entity('roles')
 export class Role {
@@ -10,11 +10,10 @@ export class Role {
   @Column({
     type: 'enum',
     enum: RoleName,
-    default: RoleName.USER, // default role
+    default: RoleName.USER,
   })
   name: RoleName;
 
-  // Optional: if you want to link users to roles
   @OneToMany(() => User, (user) => user.role)
   users: User[];
 }
