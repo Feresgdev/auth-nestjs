@@ -261,6 +261,26 @@ export class UserService {
     });
   }
 
+  async updateRefreshToken(id: string, newRefreshToken: string): Promise<void> {
+    return this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(User);
+
+      const foundUser: User = await this.findById(id);
+
+      if (!foundUser) throw new NotFoundException('user Not found');
+
+      await repo.update({ id }, { refreshToken: newRefreshToken });
+
+      const updatedUser = await repo.findOne({
+        where: { id },
+        relations: ['role'],
+        withDeleted: false,
+      });
+
+      if (!updatedUser) throw new NotFoundException('updated user Not found');
+    });
+  }
+
   private async emailExists(email: string): Promise<boolean> {
     const user = await this.dataSource
       .getRepository(User)

@@ -25,6 +25,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ name: 'refresh_token', nullable: true })
+  refreshToken: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
