@@ -119,6 +119,30 @@ export class UserService {
     return { data: users, total, page, limit };
   }
 
+  async findByEmail(email: string): Promise<User> {
+    this.logger.debug(`Finding user with email : ${email}`);
+    const user = await this.dataSource
+      .getRepository(User)
+      .createQueryBuilder('user')
+      .leftJoin('user.role', 'role')
+      .select([
+        'user.id',
+        'user.email',
+        'user.password',
+        'user.createdAt',
+        'user.updatedAt',
+        'role.name',
+      ])
+      .where('user.email = :email', { email })
+      .andWhere('role.name = :roleName', { roleName: RoleName.USER })
+      .getOne();
+    if (!user) {
+      this.logger.error(`User not found with email : ${email}`);
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+    return user;
+  }
+
   async create(
     email: string,
     password: string,

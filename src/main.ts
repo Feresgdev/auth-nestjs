@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { setupSwagger } from './config/swagger.config';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './config/http-exception.filter';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +12,8 @@ async function bootstrap() {
 
   app.useGlobalFilters(new AllExceptionsFilter());
   setupSwagger(app);
+
+  app.use(cookieParser()); // for jwt
 
   app.useGlobalPipes(
     new ValidationPipe({

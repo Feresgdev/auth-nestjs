@@ -7,8 +7,6 @@ import { DataSource } from 'typeorm';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 
-const execAsync = promisify(exec);
-
 @Injectable()
 export class SystemService {
   constructor(private dataSource: DataSource) {}

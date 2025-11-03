@@ -27,12 +27,14 @@ import { UserResponseDto } from './dto/user_response.dto';
 import { isEmail } from 'class-validator';
 import { EmailParamDto } from './dto/email_param.dto';
 import { UpdateUserDto } from './dto/update_user.dto';
+import { Public } from '../auth/public.decorator';
 
 @ApiTags('users')
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Public()
   @Get('')
   @ApiOperation({ summary: 'Get all users with pagination' })
   @ApiQuery({
@@ -51,6 +53,7 @@ export class UserController {
     return this.userService.findAll(query.page, query.limit);
   }
 
+  @Public()
   @Get('/:id')
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiParam({ name: 'id', description: 'User UUID' })

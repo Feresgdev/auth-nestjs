@@ -6,7 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { databaseConfig } from './config/database.config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserSeeder } from './user/user.seeder';
-import { AdminModule } from './admin/admin.module';
 import { SystemModule } from './system/system.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -23,7 +22,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 
     UserModule,
     AuthModule,
-    AdminModule,
     SystemModule,
   ],
 
