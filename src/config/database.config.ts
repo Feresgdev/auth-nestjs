@@ -13,5 +13,5 @@ export const databaseConfig = (
   database: configService.get<string>('DB_NAME') || 'mydb',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: true,
-  logging: true,
+  logging: false,
 });

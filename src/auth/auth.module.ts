@@ -8,9 +8,10 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt.auth.guard';
+import { EmailModule } from '../email/email.module';
 
 @Module({
-  imports: [UserModule, PassportModule, JwtModule],
+  imports: [UserModule, PassportModule, JwtModule, EmailModule],
   controllers: [AuthController],
   providers: [
     AuthService,

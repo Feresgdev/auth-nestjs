@@ -22,10 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { User } from './models/user.entity';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
-import { CreateUserDto } from './dto/create_user.dto';
 import { UserResponseDto } from './dto/user_response.dto';
-import { isEmail } from 'class-validator';
-import { EmailParamDto } from './dto/email_param.dto';
 import { UpdateUserDto } from './dto/update_user.dto';
 import { Public } from '../auth/public.decorator';
 
@@ -60,23 +57,6 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'User found', type: User })
   async findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<User> {
     return this.userService.findById(id);
-  }
-
-  @Post('')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a regular user' })
-  @ApiResponse({
-    status: 201,
-    description: 'User created successfully',
-    type: User,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Email already exists or invalid data',
-  })
-  async createUser(@Body() bodyData: CreateUserDto): Promise<UserResponseDto> {
-    const { email, password, confirmPassword } = bodyData;
-    return this.userService.create(email, password, confirmPassword);
   }
 
   @Put(':id')

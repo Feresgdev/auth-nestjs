@@ -6,18 +6,22 @@ import {
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { User } from './models/user.entity';
-import { Role } from '../common/models/role.entity';
-import { CreateUserDto } from './dto/create_user.dto';
+import { Role } from '../shared/models/role.entity';
 import * as bcrypt from 'bcrypt';
 
 import { UserResponseDto } from './dto/user_response.dto';
-import { RoleName } from '../common/enums/user_name.enum';
+import { RoleName } from '../shared/enums/user_name.enum';
 import { UpdateUserDto } from './dto/update_user.dto';
+import { randomBytes } from 'crypto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private dataSource: DataSource,
+    private readonly emailService: EmailService,
+  ) {}
 
   async findById(id: string): Promise<User> {
     this.logger.debug(`Finding user with Id : ${id}`);
@@ -143,6 +147,51 @@ export class UserService {
     return user;
   }
 
+  async findByActivationToken(token: string): Promise<User> {
+    this.logger.debug(`Finding user with token : ${token}`);
+    const user = await this.dataSource
+      .getRepository(User)
+      .createQueryBuilder('user')
+      .leftJoin('user.role', 'role')
+      .select([
+        'user.id',
+        'user.activationToken',
+        'user.password',
+        'user.createdAt',
+        'user.updatedAt',
+        'role.name',
+      ])
+      .where('user.activationToken = :token', { token })
+      .andWhere('role.name = :roleName', { roleName: RoleName.USER })
+      .getOne();
+    if (!user) {
+      this.logger.error(`User not found with token : ${token}`);
+      throw new NotFoundException(`User with token ${token} not found`);
+    }
+    return user;
+  }
+
+  async findByResetToken(token: string): Promise<User> {
+    this.logger.debug(`Finding user with reset token : ${token}`);
+    const user = await this.dataSource
+      .getRepository(User)
+      .createQueryBuilder('user')
+      .leftJoin('user.role', 'role')
+      .select([
+        'user.id',
+        'user.resetPasswordToken',
+        'user.resetPasswordExpires',
+      ])
+      .where('user.resetPasswordToken = :token', { token })
+      .andWhere('role.name = :roleName', { roleName: RoleName.USER })
+      .getOne();
+    if (!user) {
+      this.logger.error(`User not found with token : ${token}`);
+      throw new NotFoundException(`User with token ${token} not found`);
+    }
+    return user;
+  }
+
   async create(
     email: string,
     password: string,
@@ -164,10 +213,19 @@ export class UserService {
       const role = await roleRepo.findOne({ where: { name: RoleName.USER } });
       if (!role) throw new NotFoundException('Default role User not found');
 
+      const activationToken = randomBytes(32).toString('hex');
+
       const hashed = await bcrypt.hash(password, 10);
-      const user = repo.create({ email: email, password: hashed, role });
+      const user = repo.create({
+        email: email,
+        password: hashed,
+        role,
+        activationToken: activationToken,
+      });
 
       const savedUser = await repo.save(user);
+
+      await this.emailService.sendActivationEmail(email, activationToken);
 
       return {
         id: savedUser.id,
@@ -176,6 +234,28 @@ export class UserService {
         updatedAt: savedUser.updatedAt,
         role: { name: savedUser.role.name },
       };
+    });
+  }
+
+  async createPasswordResetToken(
+    userId: string,
+    resetToken: string,
+    resetTokenExpiry: Date,
+  ): Promise<void> {
+    return this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(User);
+
+      const foundUser: User = await this.findById(userId);
+
+      if (!foundUser) throw new NotFoundException('user Not found');
+
+      await repo.update(
+        { id: userId },
+        {
+          resetPasswordToken: resetToken,
+          resetPasswordExpires: resetTokenExpiry,
+        },
+      );
     });
   }
 
@@ -261,7 +341,10 @@ export class UserService {
     });
   }
 
-  async updateRefreshToken(id: string, newRefreshToken: string): Promise<void> {
+  async updateRefreshToken(
+    id: string,
+    newRefreshToken: string | null,
+  ): Promise<void> {
     return this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(User);
 
@@ -269,7 +352,7 @@ export class UserService {
 
       if (!foundUser) throw new NotFoundException('user Not found');
 
-      await repo.update({ id }, { refreshToken: newRefreshToken });
+      await repo.update({ id }, { refreshToken: newRefreshToken! });
 
       const updatedUser = await repo.findOne({
         where: { id },
@@ -278,6 +361,80 @@ export class UserService {
       });
 
       if (!updatedUser) throw new NotFoundException('updated user Not found');
+    });
+  }
+
+  async updatePasswordAndResetToken(
+    userId: string,
+    newHashedPassword: string,
+  ): Promise<void> {
+    return this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(User);
+
+      const foundUser: User = await this.findById(userId);
+
+      if (!foundUser) throw new NotFoundException('user Not found');
+
+      await repo.update(
+        { id: userId },
+        {
+          password: newHashedPassword,
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        },
+      );
+    });
+  }
+
+  async updateActivationToken(
+    userId: string,
+    activationToken: string,
+  ): Promise<void> {
+    return this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(User);
+
+      const foundUser: User = await this.findById(userId);
+
+      if (!foundUser) throw new NotFoundException('user Not found');
+
+      await repo.update(
+        { id: userId },
+        {
+          activationToken: activationToken,
+        },
+      );
+    });
+  }
+
+  async activateUser(userId: string): Promise<User> {
+    return this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(User);
+
+      const foundUser: User = await this.findById(userId);
+
+      if (!foundUser) throw new NotFoundException('user Not found');
+
+      if (foundUser.isActive) {
+        throw new BadRequestException('user account already activated');
+      }
+
+      await repo.update(
+        { id: userId },
+        {
+          isActive: true,
+          activationToken: null,
+        },
+      );
+
+      const updatedUser = await repo.findOne({
+        where: { id: userId },
+        relations: ['role'],
+        withDeleted: false,
+      });
+
+      if (!updatedUser) throw new NotFoundException('updated user Not found');
+
+      return updatedUser;
     });
   }
 

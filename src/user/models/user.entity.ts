@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { Role } from '../../common/models/role.entity';
+import { Role } from '../../shared/models/role.entity';
 
 @Entity('users')
 export class User {
@@ -27,6 +27,33 @@ export class User {
 
   @Column({ name: 'refresh_token', nullable: true })
   refreshToken: string;
+
+  @Column({ name: 'is_active', default: false })
+  isActive: boolean;
+
+  @Column({
+    name: 'activation_token',
+    type: 'varchar',
+    nullable: true,
+    default: null,
+  })
+  activationToken?: string | null;
+
+  @Column({
+    name: 'reset_password_token',
+    type: 'varchar',
+    nullable: true,
+    default: null,
+  })
+  resetPasswordToken?: string | null;
+
+  @Column({
+    name: 'reset_password_expires',
+    type: 'timestamp with time zone',
+    nullable: true,
+    default: null,
+  })
+  resetPasswordExpires?: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
