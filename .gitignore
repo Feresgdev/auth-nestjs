@@ -5,7 +5,7 @@
 
 #monitoring files
 /grafana
-/prometheus
+/prometheus/data
 
 # Logs
 logs
