@@ -38,7 +38,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(configService.getOrThrow('PORT') || 5000);
+  await app.listen(configService.getOrThrow('APP_PORT') || 5000,'0.0.0.0'); // 00000 for docker networks
   const dataSource = app.get(DataSource);
   const result = await dataSource.query('SELECT version()');
 
@@ -48,12 +48,12 @@ async function bootstrap() {
    =======================================================                                                                                                                          
    🚀 Application ${configService.getOrThrow('APP_NAME')} Running! 
    ------------------------------------------------------------
-   ▸ PORT : ${configService.getOrThrow('PORT')} 
+   ▸ PORT : ${configService.getOrThrow('APP_PORT')} 
    ▸ PostgreSQL Version: ${result[0].version} 
    ▸ Node.js Version: ${process.version}
    ▸ NestJS Version: ${nestVersion}
    ▸ ENV : ${configService.getOrThrow('NODE_ENV')}
-   ${configService.getOrThrow('NODE_ENV') !== 'production' ? `▸ Swagger URL : ${configService.getOrThrow('DEV_URL')}:${configService.getOrThrow('PORT')}/${configService.getOrThrow('SWAGGER_ROUTE')}` : ``}                                                                                                                          
+   ${configService.getOrThrow('NODE_ENV') !== 'production' ? `▸ Swagger URL : ${configService.getOrThrow('DEV_URL')}:${configService.getOrThrow('APP_PORT')}/${configService.getOrThrow('SWAGGER_ROUTE')}` : ``}                                                                                                                          
    =======================================================`,
   );
 }
