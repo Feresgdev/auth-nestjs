@@ -18,7 +18,7 @@ export class UserSeeder {
     const userRepo = this.dataSource.getRepository(User);
     const alreadySeeded = await userRepo.count();
 
-    const roles = [RoleName.ADMIN, RoleName.SUPER_ADMIN, RoleName.USER];
+    const roles = [RoleName.VISITOR, RoleName.PREMIUM, RoleName.DEFAULT];
     for (const name of roles) {
       const existing = await roleRepo.findOne({ where: { name } });
       if (!existing) {
@@ -28,13 +28,13 @@ export class UserSeeder {
     }
 
     const superAdminRole = await roleRepo.findOne({
-      where: { name: RoleName.SUPER_ADMIN },
+      where: { name: RoleName.PREMIUM },
     });
     const adminRole = await roleRepo.findOne({
-      where: { name: RoleName.ADMIN },
+      where: { name: RoleName.VISITOR },
     });
     const userRole = await roleRepo.findOne({
-      where: { name: RoleName.USER },
+      where: { name: RoleName.DEFAULT },
     });
 
     if (!userRole) {

@@ -6,5 +6,14 @@ export class UpdateUserDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
   @Optional()
-  email: string;
+  email?: string;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    required: false,
+    description: 'Profile picture file',
+  })
+  @Optional()
+  profilePicFile?: any;
 }

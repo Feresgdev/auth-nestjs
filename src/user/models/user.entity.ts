@@ -8,8 +8,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Role } from '../../shared/models/role.entity';
+import { ResetPasswordToken } from './reset_password_token.entity';
+import { ActivationToken } from './activation_token.entity';
 
 @Entity('users')
 export class User {
@@ -22,6 +25,9 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Column({ name: 'profile_picture_url', type: 'varchar', nullable: true })
+  profilePictureUrl: string | null;
+
   @Column()
   password: string;
 
@@ -30,30 +36,6 @@ export class User {
 
   @Column({ name: 'is_active', default: false })
   isActive: boolean;
-
-  @Column({
-    name: 'activation_token',
-    type: 'varchar',
-    nullable: true,
-    default: null,
-  })
-  activationToken?: string | null;
-
-  @Column({
-    name: 'reset_password_token',
-    type: 'varchar',
-    nullable: true,
-    default: null,
-  })
-  resetPasswordToken?: string | null;
-
-  @Column({
-    name: 'reset_password_expires',
-    type: 'timestamp with time zone',
-    nullable: true,
-    default: null,
-  })
-  resetPasswordExpires?: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -67,4 +49,10 @@ export class User {
   @ManyToOne(() => Role, (role) => role.users, { nullable: false })
   @JoinColumn({ name: 'role_id' })
   role: Role;
+
+  @OneToMany(() => ResetPasswordToken, (rp) => rp.user)
+  resetPasswords?: ResetPasswordToken[];
+
+  @OneToMany(() => ActivationToken, (rp) => rp.user)
+  activationTokens?: ActivationToken[];
 }

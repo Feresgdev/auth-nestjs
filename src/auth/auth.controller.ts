@@ -15,7 +15,13 @@ import { LocalAuthGuard } from './guards/local_auth.guard';
 import { CurrentUser } from './current_user.decorator';
 import { User } from '../user/models/user.entity';
 import express from 'express';
-import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { Public } from './public.decorator';
 import { ResetPasswordDto } from './dto/reset_password.dto';
 import { JwtAuthGuard } from './guards/jwt.auth.guard';
@@ -58,11 +64,11 @@ export class AuthController {
     @CurrentUser() user: User,
     @Res({ passthrough: true }) response: express.Response,
   ) {
+    console.log('test login controller : ', user);
     await this.authService.login(user, response);
   }
 
   @Post('/logout')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'User Logout' })
   @ApiResponse({ status: 200, description: 'Logout successful' })
   async logout(
@@ -90,7 +96,6 @@ export class AuthController {
     return this.userService.create(email, password, confirmPassword);
   }
 
-  @Public()
   @Post('/activate')
   @ApiOperation({ summary: 'Activate Account' })
   @ApiQuery({ name: 'token', type: 'string' })
@@ -104,16 +109,16 @@ export class AuthController {
     description: 'Sends a new activation email using email address',
   })
   @ApiBody({
-    description: 'User email address',
+    description: 'User id',
     schema: {
       type: 'object',
       properties: {
-        email: {
+        id: {
           type: 'string',
-          example: 'john.doe@example.com',
+          example: '1684ff64-b517-48ce-80b9-c0c5bf18feda',
         },
       },
-      required: ['email'],
+      required: ['id'],
     },
   })
   @ApiResponse({
@@ -147,12 +152,15 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        token: { type: 'string' },
         password: { type: 'string', example: 'NewPassword123!' },
       },
     },
   })
-  async resetPassword(@Body() resetDto: ResetPasswordDto) {
-    return this.authService.resetPassword(resetDto.token, resetDto.password);
+  @ApiQuery({ name: 'token', type: 'string' })
+  async resetPassword(
+    @Query('token') token: string,
+    @Body() resetDto: ResetPasswordDto,
+  ) {
+    return this.authService.resetPassword(token, resetDto.password);
   }
 }

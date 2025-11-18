@@ -11,9 +11,13 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
+  ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -59,7 +63,30 @@ export class UserController {
     return this.userService.findById(id);
   }
 
+  @Get('/:id/isDeleted')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user by ID' })
+  @ApiParam({ name: 'id', description: 'User UUID' })
+  @ApiResponse({ status: 200, description: 'User found', type: User })
+  async getIsDeleted(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<boolean> {
+    return this.userService.isDeleted(id);
+  }
+
+  @Get('/:id/isActive')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user by ID' })
+  @ApiParam({ name: 'id', description: 'User UUID' })
+  @ApiResponse({ status: 200, description: 'User found', type: User })
+  async getIsActive(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<boolean> {
+    return this.userService.isActive(id);
+  }
+
   @Put(':id')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiParam({ name: 'id', description: 'User id' })
   @ApiOperation({ summary: 'Update a regular user' })
@@ -72,14 +99,17 @@ export class UserController {
     status: 400,
     description: 'User already restored or not even deleted',
   })
+  @ApiConsumes('multipart/form-data')
   async updatedUser(
     @Param('id', new ParseUUIDPipe()) id: string,
+    @UploadedFile() file: File,
     @Body() bodyData: UpdateUserDto,
   ): Promise<UserResponseDto> {
-    return this.userService.update(id, bodyData);
+    return this.userService.update(id, bodyData, file);
   }
 
   @Patch('restore/:id')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiParam({ name: 'id', description: 'User id' })
   @ApiOperation({ summary: 'Resotre a regular user' })
@@ -99,6 +129,7 @@ export class UserController {
   }
 
   @Delete('/:id')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiParam({ name: 'id', description: 'User id' })
   @ApiOperation({ summary: 'Soft delete a regular user' })
@@ -118,6 +149,7 @@ export class UserController {
   }
 
   @Delete('/:id/hard')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiParam({ name: 'id', description: 'User id' })
   @ApiOperation({ summary: 'Hard delete a regular user' })

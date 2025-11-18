@@ -10,6 +10,7 @@ import helmet from 'helmet';
 import { banner } from './utils/banner';
 import { version as nestVersion } from '@nestjs/common/package.json';
 import { DataSource } from 'typeorm';
+import * as dotenv from 'dotenv';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,9 +24,11 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   app.useGlobalFilters(new AllExceptionsFilter());
-  setupSwagger(app);
+  setupSwagger(app, configService);
 
-  app.use(cookieParser()); // for jwt
+  dotenv.config();
+
+  app.use(cookieParser());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -49,7 +52,8 @@ async function bootstrap() {
    ▸ PostgreSQL Version: ${result[0].version} 
    ▸ Node.js Version: ${process.version}
    ▸ NestJS Version: ${nestVersion}
-   ▸ ENV : ${configService.getOrThrow('NODE_ENV')}                                                                                                                            
+   ▸ ENV : ${configService.getOrThrow('NODE_ENV')}
+   ${configService.getOrThrow('NODE_ENV') !== 'production' ? `▸ Swagger URL : ${configService.getOrThrow('DEV_URL')}:${configService.getOrThrow('PORT')}/${configService.getOrThrow('SWAGGER_ROUTE')}` : ``}                                                                                                                          
    =======================================================`,
   );
 }

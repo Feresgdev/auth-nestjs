@@ -9,6 +9,7 @@ import { UserSeeder } from './user/user.seeder';
 import { SystemModule } from './system/system.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EmailModule } from './email/email.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EmailModule } from './email/email.module';
     AuthModule,
     SystemModule,
     EmailModule,
+    FirebaseModule,
   ],
 
   controllers: [],

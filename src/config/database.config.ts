@@ -12,6 +12,7 @@ export const databaseConfig = (
   password: configService.get<string>('DB_PASSWORD') || 'password',
   database: configService.get<string>('DB_NAME') || 'mydb',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  synchronize: true,
-  logging: false,
+  synchronize:
+    configService.getOrThrow('NODE_ENV') !== 'production' ? true : false,
+  logging: true,
 });

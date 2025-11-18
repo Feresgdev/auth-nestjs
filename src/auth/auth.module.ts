@@ -9,9 +9,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt.auth.guard';
 import { EmailModule } from '../email/email.module';
+import { FirebaseModule } from '../firebase/firebase.module';
 
 @Module({
-  imports: [UserModule, PassportModule, JwtModule, EmailModule],
+  imports: [UserModule, PassportModule, JwtModule, EmailModule, FirebaseModule],
   controllers: [AuthController],
   providers: [
     AuthService,
