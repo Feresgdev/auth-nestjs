@@ -1,0 +1,20 @@
+# Dockerfile.dev
+FROM node:24-alpine
+
+WORKDIR /app
+
+# install deps first (leverages Docker cache)
+COPY package.json package-lock.json* ./
+RUN npm ci --unsafe-perm
+
+# Copy only compiled tsconfig or keep minimal (we mount src during dev)
+COPY tsconfig.json ./
+
+ENV NODE_ENV=development
+ENV TZ=UTC
+
+# Expose app and debug ports
+EXPOSE 5000 9229
+
+# Default command runs app in dev mode (compose overrides possible)
+CMD ["npm", "run", "start:dev"]
