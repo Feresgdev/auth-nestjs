@@ -27,6 +27,7 @@ export class SystemController {
   @ApiResponse({ status: 400, description: 'Invalid table name' })
   @ApiResponse({ status: 404, description: 'Table not found' })
   async deleteTable(@Param('tableName') tableName: string): Promise<void> {
+    
     return this.systemService.deleteTable(tableName);
   }
 
