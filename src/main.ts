@@ -17,6 +17,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
+
   app.use(helmet());
 
   app.enableCors(getCorsConfig(configService));
@@ -52,6 +53,11 @@ async function bootstrap() {
    ▸ PostgreSQL Version: ${result[0].version} 
    ▸ Node.js Version: ${process.version}
    ▸ NestJS Version: ${nestVersion}
+   ▸ Grafana URL : ${configService.getOrThrow('DEV_URL')}:3000
+   ▸ PgAdmin URL : ${configService.getOrThrow('DEV_URL')}:5050
+   ▸ Mathesar URL : ${configService.getOrThrow('MATHESAR_DOMAIN_NAME')}
+   ▸ RedisInsight URL ${configService.getOrThrow('DEV_URL')}:8001
+   ▸ Redis PORT : ${configService.getOrThrow('REDIS_PORT')}
    ▸ ENV : ${configService.getOrThrow('NODE_ENV')}
    ${configService.getOrThrow('NODE_ENV') !== 'production' ? `▸ Swagger URL : ${configService.getOrThrow('DEV_URL')}:${configService.getOrThrow('APP_PORT')}/${configService.getOrThrow('SWAGGER_ROUTE')}` : ``}                                                                                                                          
    =======================================================`,
